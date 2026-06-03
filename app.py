@@ -27,12 +27,37 @@ st.write("Joblib :", joblib.__version__)
 # LOAD MODEL
 # ==================================================
 
+import sys
+
+st.write("Python :", sys.version)
+st.write("Sklearn:", sklearn.__version__)
+st.write("Joblib :", joblib.__version__)
+
 try:
+
+    if not os.path.exists("burnout_predictor.pkl"):
+
+        st.error("burnout_predictor.pkl NOT FOUND")
+        st.stop()
+
+    st.success("Model file found")
+
+    st.write(
+        "Model Size:",
+        round(os.path.getsize("burnout_predictor.pkl") / 1024, 2),
+        "KB"
+    )
+
     model = joblib.load("burnout_predictor.pkl")
+
     st.success("Model loaded successfully")
+
 except Exception as e:
-    st.error("Model load failed")
+
+    st.error("Model loading failed")
+
     st.exception(e)
+
     st.stop()
 # ==================================================
 # CUSTOM CSS
