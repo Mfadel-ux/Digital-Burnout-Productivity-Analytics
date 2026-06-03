@@ -15,24 +15,25 @@ st.set_page_config(
     layout="wide"
 )
 
+import sklearn
+import joblib
+import sys
+
+st.write("Python :", sys.version)
+st.write("Sklearn:", sklearn.__version__)
+st.write("Joblib :", joblib.__version__)
+
 # ==================================================
 # LOAD MODEL
 # ==================================================
 
 try:
-
-    if not os.path.exists("burnout_predictor.pkl"):
-        st.error("burnout_predictor.pkl not found")
-        st.stop()
-
     model = joblib.load("burnout_predictor.pkl")
-
+    st.success("Model loaded successfully")
 except Exception as e:
-
-    st.error("Failed to load model")
+    st.error("Model load failed")
     st.exception(e)
     st.stop()
-
 # ==================================================
 # CUSTOM CSS
 # ==================================================
