@@ -1,9 +1,26 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import joblib
 import os
-import sklearn
+import sys
+
+st.write("Python:", sys.version)
+
+try:
+    import joblib
+    st.success("Joblib imported successfully")
+except Exception as e:
+    st.error("Joblib import failed")
+    st.exception(e)
+    st.stop()
+
+try:
+    import sklearn
+    st.success("Sklearn imported successfully")
+except Exception as e:
+    st.error("Sklearn import failed")
+    st.exception(e)
+    st.stop()
 
 # ==================================================
 # PAGE CONFIG
