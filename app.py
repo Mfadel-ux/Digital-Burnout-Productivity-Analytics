@@ -1,27 +1,21 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-import os
+import subprocess
 import sys
 
 st.write("Python:", sys.version)
 
 try:
-    import joblib
-    st.success("Joblib imported successfully")
-except Exception as e:
-    st.error("Joblib import failed")
-    st.exception(e)
-    st.stop()
+    result = subprocess.check_output(
+        [sys.executable, "-m", "pip", "list"],
+        text=True
+    )
 
-try:
-    import sklearn
-    st.success("Sklearn imported successfully")
-except Exception as e:
-    st.error("Sklearn import failed")
-    st.exception(e)
-    st.stop()
+    st.text(result[:15000])
 
+except Exception as e:
+    st.exception(e)
+
+st.stop()
 # ==================================================
 # PAGE CONFIG
 # ==================================================
