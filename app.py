@@ -1,6 +1,13 @@
 import streamlit as st
 import subprocess
 import sys
+import os
+import streamlit as st
+
+st.write("Current files:")
+st.write(os.listdir("."))
+st.stop()
+
 
 st.write("Python:", sys.version)
 
