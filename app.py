@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
+import os
+import sklearn
 
 # ==================================================
 # PAGE CONFIG
@@ -17,7 +19,19 @@ st.set_page_config(
 # LOAD MODEL
 # ==================================================
 
-model = joblib.load("burnout_predictor.pkl")
+try:
+
+    if not os.path.exists("burnout_predictor.pkl"):
+        st.error("burnout_predictor.pkl not found")
+        st.stop()
+
+    model = joblib.load("burnout_predictor.pkl")
+
+except Exception as e:
+
+    st.error("Failed to load model")
+    st.exception(e)
+    st.stop()
 
 # ==================================================
 # CUSTOM CSS
@@ -28,25 +42,10 @@ st.markdown("""
 
 .stApp{
     background-color:#1F1F1F;
-    color:white;
 }
 
 section[data-testid="stSidebar"]{
     background-color:#171717;
-}
-
-.metric-card{
-    background:#2A2A2A;
-    padding:20px;
-    border-radius:16px;
-    border:1px solid #3A3A3A;
-}
-
-.dashboard-card{
-    background:#2A2A2A;
-    padding:25px;
-    border-radius:16px;
-    border:1px solid #3A3A3A;
 }
 
 .big-title{
@@ -60,21 +59,6 @@ section[data-testid="stSidebar"]{
     font-size:16px;
 }
 
-.low-risk{
-    color:#22C55E;
-    font-weight:bold;
-}
-
-.medium-risk{
-    color:#FACC15;
-    font-weight:bold;
-}
-
-.high-risk{
-    color:#EF4444;
-    font-weight:bold;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -85,6 +69,10 @@ section[data-testid="stSidebar"]{
 with st.sidebar:
 
     st.title("🧠 Burnout AI")
+
+    st.caption(f"Sklearn {sklearn.__version__}")
+    st.caption(f"Pandas {pd.__version__}")
+    st.caption(f"Numpy {np.__version__}")
 
     st.markdown("---")
 
@@ -98,30 +86,31 @@ with st.sidebar:
     occupation = st.selectbox(
         "Occupation",
         [
+            "Content Creator",
             "Student",
-            "Analyst",
-            "Manager",
             "Software Engineer",
             "Designer",
-            "Content Creator"
+            "Analyst",
+            "Freelancer",
+            "Manager"
         ]
     )
 
     work_mode = st.selectbox(
         "Work Mode",
         [
-            "Remote",
+            "Office",
             "Hybrid",
-            "Office"
+            "Remote"
         ]
     )
 
     device_usage_type = st.selectbox(
         "Device Usage Type",
         [
-            "Balanced",
+            "Entertainment-Centric",
             "Work-Centric",
-            "Entertainment-Centric"
+            "Balanced"
         ]
     )
 
@@ -142,14 +131,14 @@ st.markdown(
 )
 
 st.markdown(
-    '<div class="sub-title">Monitor burnout risk using digital behavior, productivity, and wellness indicators.</div>',
+    '<div class="sub-title">Predict burnout risk using digital behavior and wellness indicators.</div>',
     unsafe_allow_html=True
 )
 
-st.markdown("")
+st.markdown("---")
 
 # ==================================================
-# INPUT DASHBOARD
+# INPUTS
 # ==================================================
 
 col1, col2, col3 = st.columns(3)
@@ -159,28 +148,18 @@ with col1:
     st.subheader("📱 Digital Behavior")
 
     daily_screen_time = st.slider(
-        "Daily Screen Time",
-        0.0,18.0,8.0
+        "Daily Screen Time (Hours)",
+        0.0, 18.0, 8.0
     )
 
     social_media_hours = st.slider(
         "Social Media Hours",
-        0.0,12.0,3.0
+        0.0, 12.0, 3.0
     )
 
     doomscrolling_duration = st.slider(
         "Doomscrolling Duration",
-        0.0,8.0,1.0
-    )
-
-    app_switch_frequency = st.slider(
-        "App Switch Frequency",
-        0,300,50
-    )
-
-    notification_count = st.slider(
-        "Notification Count",
-        0,500,120
+        0.0, 8.0, 1.0
     )
 
 with col2:
@@ -189,27 +168,17 @@ with col2:
 
     deep_work_hours = st.slider(
         "Deep Work Hours",
-        0.0,12.0,3.0
+        0.0, 12.0, 3.0
     )
 
     distraction_frequency = st.slider(
         "Distraction Frequency",
-        0,100,20
-    )
-
-    focus_sessions = st.slider(
-        "Focus Sessions",
-        0,20,5
+        0, 100, 20
     )
 
     meeting_hours = st.slider(
         "Meeting Hours",
-        0.0,10.0,2.0
-    )
-
-    work_satisfaction = st.slider(
-        "Work Satisfaction",
-        1,10,5
+        0.0, 10.0, 2.0
     )
 
 with col3:
@@ -218,27 +187,27 @@ with col3:
 
     sleep_hours = st.slider(
         "Sleep Hours",
-        0.0,12.0,7.0
+        0.0, 12.0, 7.0
     )
 
     sleep_quality = st.slider(
         "Sleep Quality",
-        1,10,7
+        1, 10, 7
     )
 
     physical_activity = st.slider(
         "Physical Activity",
-        0,10,5
+        0, 10, 5
     )
 
     stress_level = st.slider(
         "Stress Level",
-        1,10,5
+        1, 10, 5
     )
 
     motivation_level = st.slider(
         "Motivation Level",
-        1,10,5
+        1, 10, 5
     )
 
 # ==================================================
@@ -246,21 +215,21 @@ with col3:
 # ==================================================
 
 digital_overload_score = (
-    daily_screen_time +
-    social_media_hours +
-    doomscrolling_duration
+    daily_screen_time
+    + social_media_hours
+    + doomscrolling_duration
 )
 
 wellness_score = (
-    sleep_quality +
-    physical_activity +
-    motivation_level -
-    stress_level
+    sleep_quality
+    + physical_activity
+    + motivation_level
+    - stress_level
 )
 
 focus_efficiency = (
-    deep_work_hours /
-    (distraction_frequency + 1)
+    deep_work_hours
+    / (distraction_frequency + 1)
 )
 
 # ==================================================
@@ -271,58 +240,55 @@ if predict_button:
 
     input_df = pd.DataFrame({
 
-        "age":[age],
+        "age": [age],
 
-        "daily_screen_time":[daily_screen_time],
-        "social_media_hours":[social_media_hours],
-        "doomscrolling_duration":[doomscrolling_duration],
+        "daily_screen_time": [daily_screen_time],
+        "social_media_hours": [social_media_hours],
+        "doomscrolling_duration": [doomscrolling_duration],
 
-        "app_switch_frequency":[app_switch_frequency],
-        "notification_count":[notification_count],
+        "deep_work_hours": [deep_work_hours],
+        "distraction_frequency": [distraction_frequency],
+        "meeting_hours": [meeting_hours],
 
-        "focus_sessions":[focus_sessions],
-        "deep_work_hours":[deep_work_hours],
-        "distraction_frequency":[distraction_frequency],
+        "sleep_hours": [sleep_hours],
+        "sleep_quality": [sleep_quality],
 
-        "sleep_hours":[sleep_hours],
-        "sleep_quality":[sleep_quality],
+        "physical_activity": [physical_activity],
+        "stress_level": [stress_level],
+        "motivation_level": [motivation_level],
 
-        "physical_activity":[physical_activity],
-        "stress_level":[stress_level],
+        "digital_overload_score": [digital_overload_score],
+        "wellness_score": [wellness_score],
+        "focus_efficiency": [focus_efficiency],
 
-        "meeting_hours":[meeting_hours],
-        "motivation_level":[motivation_level],
-
-        "work_satisfaction":[work_satisfaction],
-
-        "digital_overload_score":[digital_overload_score],
-        "wellness_score":[wellness_score],
-        "focus_efficiency":[focus_efficiency],
-
-        "occupation":[occupation],
-        "work_mode":[work_mode],
-        "device_usage_type":[device_usage_type]
+        "occupation": [occupation],
+        "work_mode": [work_mode],
+        "device_usage_type": [device_usage_type]
 
     })
 
-    prediction = model.predict(input_df)[0]
+    try:
+
+        prediction = float(model.predict(input_df)[0])
+
+    except Exception as e:
+
+        st.error("Prediction failed")
+        st.exception(e)
+        st.stop()
 
     st.markdown("---")
 
-    # ==========================================
-    # METRIC CARDS
-    # ==========================================
-
-    c1,c2,c3 = st.columns(3)
+    c1, c2, c3 = st.columns(3)
 
     c1.metric(
         "Burnout Risk",
-        f"{prediction:.1f}"
+        f"{prediction:.1f}/100"
     )
 
     c2.metric(
-        "Wellness Score",
-        f"{wellness_score:.1f}"
+        "Digital Overload",
+        f"{digital_overload_score:.1f}"
     )
 
     c3.metric(
@@ -330,86 +296,79 @@ if predict_button:
         f"{focus_efficiency:.2f}"
     )
 
-    st.markdown("### Burnout Risk Level")
-
-    st.progress(
-        min(int(prediction),100)
-    )
-
-    # ==========================================
-    # CATEGORY
-    # ==========================================
+    st.progress(min(int(prediction), 100))
 
     if prediction < 35:
 
         category = "🟢 LOW RISK"
 
         recommendation = """
-        • Maintain current habits
-        
-        • Continue regular exercise
-        
-        • Keep healthy sleep schedule
-        
-        • Preserve work-life balance
-        """
+• Maintain current healthy habits
+
+• Keep a consistent sleep schedule
+
+• Continue regular physical activity
+
+• Preserve work-life balance
+"""
 
     elif prediction < 65:
 
         category = "🟡 MEDIUM RISK"
 
         recommendation = """
-        • Reduce screen time
-        
-        • Improve sleep quality
-        
-        • Schedule recovery breaks
-        
-        • Increase focus sessions
-        """
+• Reduce unnecessary screen time
+
+• Increase focus sessions
+
+• Schedule regular breaks
+
+• Improve sleep quality
+"""
 
     else:
 
         category = "🔴 HIGH RISK"
 
         recommendation = """
-        • Reduce digital overload
-        
-        • Limit doomscrolling behavior
-        
-        • Prioritize sleep recovery
-        
-        • Increase physical activity
-        
-        • Consider workload adjustment
-        """
+• Reduce digital overload
+
+• Limit doomscrolling behavior
+
+• Prioritize sleep recovery
+
+• Increase physical activity
+
+• Consider workload adjustment
+"""
 
     st.subheader(category)
 
-    st.markdown("---")
+    col_a, col_b = st.columns(2)
 
-    colA,colB = st.columns([1,1])
+    with col_a:
 
-    with colA:
+        st.markdown("### 📊 Burnout Indicators")
 
-        st.markdown("### 📊 Behavioral Indicators")
+        indicators = pd.DataFrame({
+            "Metric": [
+                "Digital Overload",
+                "Wellness Score",
+                "Focus Efficiency"
+            ],
+            "Value": [
+                round(digital_overload_score, 2),
+                round(wellness_score, 2),
+                round(focus_efficiency, 2)
+            ]
+        })
 
-        st.write(
-            pd.DataFrame({
-                "Metric":[
-                    "Digital Overload",
-                    "Wellness",
-                    "Focus Efficiency"
-                ],
-                "Value":[
-                    round(digital_overload_score,2),
-                    round(wellness_score,2),
-                    round(focus_efficiency,2)
-                ]
-            })
+        st.dataframe(
+            indicators,
+            use_container_width=True
         )
 
-    with colB:
+    with col_b:
 
         st.markdown("### 💡 Recommendations")
 
